@@ -55,10 +55,18 @@ async function run() {
 
 
             res.send(services);
-        })
+        });
+
+        // GET A SINGLE USER DATA
+        app.get('/appointments', async(req, res) =>{
+            const patient = req.query.patient;
+            const query = { patient: patient };
+            const bookings = await bookingCollection.find(query).toArray();
+            res.send(bookings);
+          })
 
         // RECEIVE BOOKING APPOINTMENT DATA & LIMIT APPOINTMENT
-        app.post('/appointment', async (req, res) => {
+        app.post('/appointments', async (req, res) => {
             const booking = req.body;
             const query = { treatment: booking.treatment, date: booking.date, patient: booking.patient };
             const exists = await bookingCollection.findOne(query);
