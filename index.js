@@ -20,6 +20,7 @@ async function run() {
         await client.connect();
         const doctorCollection = client.db('doctordb').collection('services');
         const bookingCollection = client.db('doctordb').collection('bookings');
+        const userCollection = client.db('doctordb').collection('users');
 
         // GET ALL DATA
         app.get('/appointment', async (req, res) => {
@@ -29,6 +30,19 @@ async function run() {
             res.send(result)
 
         });
+
+        // GET USERS
+        app.put('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user,
+            };
+            const result = await userCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+        })
 
         // GET AVAILABLE APPOINTMENT
         app.get('/available', async (req, res) => {
@@ -58,12 +72,12 @@ async function run() {
         });
 
         // GET A SINGLE USER DATA
-        app.get('/appointments', async(req, res) =>{
+        app.get('/appointments', async (req, res) => {
             const patient = req.query.patient;
             const query = { patient: patient };
             const bookings = await bookingCollection.find(query).toArray();
             res.send(bookings);
-          })
+        })
 
         // RECEIVE BOOKING APPOINTMENT DATA & LIMIT APPOINTMENT
         app.post('/appointments', async (req, res) => {
@@ -82,6 +96,7 @@ async function run() {
              * app.get('/booking/:id') // get a specific booking 
              * app.post('/booking') // add a new booking
              * app.patch('/booking/:id) //
+             * app.put('/booking/:id) // upsert
              * app.delete('/booking/:id) //
             */
     }
