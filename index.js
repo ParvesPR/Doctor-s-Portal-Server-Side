@@ -4,6 +4,7 @@ const port = process.env.PORT || 5000;
 require('dotenv').config();
 const app = express();
 const { MongoClient, ServerApiVersion } = require('mongodb');
+const jwt = require('jsonwebtoken');
 
 // MIDDLEWARE
 app.use(cors());
@@ -41,7 +42,8 @@ async function run() {
                 $set: user,
             };
             const result = await userCollection.updateOne(filter, updateDoc, options);
-            res.send(result);
+            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '5h' })
+            res.send({ result, token });
         })
 
         // GET AVAILABLE APPOINTMENT
@@ -74,6 +76,8 @@ async function run() {
         // GET A SINGLE USER DATA
         app.get('/appointments', async (req, res) => {
             const patient = req.query.patient;
+            const authorization = req.headers.authorization;
+            console.log(authorization);
             const query = { patient: patient };
             const bookings = await bookingCollection.find(query).toArray();
             res.send(bookings);
