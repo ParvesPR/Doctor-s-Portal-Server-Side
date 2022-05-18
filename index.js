@@ -46,6 +46,11 @@ async function run() {
             res.send(result)
 
         });
+        // LOAD ALL USERS
+        app.get('/allusers', async (req, res) => {
+            const users = await userCollection.find().toArray();
+            res.send(users);
+        });
 
         // GET USERS
         app.put('/user/:email', async (req, res) => {
