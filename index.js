@@ -37,11 +37,12 @@ async function run() {
         const doctorCollection = client.db('doctordb').collection('services');
         const bookingCollection = client.db('doctordb').collection('bookings');
         const userCollection = client.db('doctordb').collection('users');
+        const addDoctorCollection = client.db('doctordb').collection('doctors');
 
         // GET ALL DATA
         app.get('/appointment', async (req, res) => {
             const query = {};
-            const cursor = doctorCollection.find(query);
+            const cursor = doctorCollection.find(query).project({ name: 1 });
             const result = await cursor.toArray();
             res.send(result)
 
@@ -131,8 +132,13 @@ async function run() {
             else {
                 return res.status(403).send({ message: 'forbidden access' });
             }
+        });
 
-
+        // ADD A DOCTOR
+        app.post('/doctor', async (req, res) => {
+            const doctor = req.body;
+            const result = await addDoctorCollection.insertOne(doctor);
+            res.send(result);
         })
 
         // RECEIVE BOOKING APPOINTMENT DATA & LIMIT APPOINTMENT
