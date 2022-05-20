@@ -39,6 +39,17 @@ async function run() {
         const userCollection = client.db('doctordb').collection('users');
         const addDoctorCollection = client.db('doctordb').collection('doctors');
 
+        const verifyAdmin = async (req, res, next) => {
+            const requester = req.decoded.email;
+            const requesterAccount = await userCollection.findOne({ email: requester });
+            if (requesterAccount.role === 'admin') {
+                next();
+            }
+            else {
+                res.status(403).send({ message: 'forbidden' })
+            }
+        }
+
         // GET ALL DATA
         app.get('/appointment', async (req, res) => {
             const query = {};
@@ -54,21 +65,14 @@ async function run() {
         });
 
         // MAKE USER AN ADMIN
-        app.put('/user/admin/:email', verifyJwt, async (req, res) => {
+        app.put('/user/admin/:email', verifyJwt, verifyAdmin, async (req, res) => {
             const email = req.params.email;
-            const requester = req.decoded.email;
-            const requesterAccount = await userCollection.findOne({ email: requester });
-            if (requesterAccount.role === 'admin') {
-                const filter = { email: email };
-                const updateDoc = {
-                    $set: { role: 'admin' },
-                };
-                const result = await userCollection.updateOne(filter, updateDoc);
-                res.send(result);
-            }
-            else {
-                res.status(403).send('forbidden')
-            }
+            const filter = { email: email };
+            const updateDoc = {
+                $set: { role: 'admin' },
+            };
+            const result = await userCollection.updateOne(filter, updateDoc);
+            res.send(result);
         });
 
         // FIND ADMIN USER ONLY
@@ -135,10 +139,16 @@ async function run() {
         });
 
         // ADD A DOCTOR
-        app.post('/doctor', async (req, res) => {
+        app.post('/doctor', verifyJwt, verifyAdmin, async (req, res) => {
             const doctor = req.body;
             const result = await addDoctorCollection.insertOne(doctor);
             res.send(result);
+        });
+
+        // LOAD ALL DOCTORS
+        app.get('/doctor', verifyJwt, verifyAdmin, async (req, res) => {
+            const doctors = await addDoctorCollection.find().toArray();
+            res.send(doctors)
         })
 
         // RECEIVE BOOKING APPOINTMENT DATA & LIMIT APPOINTMENT
