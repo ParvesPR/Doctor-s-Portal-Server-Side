@@ -144,6 +144,13 @@ async function run() {
             const result = await addDoctorCollection.insertOne(doctor);
             res.send(result);
         });
+        // DELETE A DOCTOR
+        app.delete('/doctor/:email', verifyJwt, verifyAdmin, async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const result = await addDoctorCollection.deleteOne(filter);
+            res.send(result);
+        })
 
         // LOAD ALL DOCTORS
         app.get('/doctor', verifyJwt, verifyAdmin, async (req, res) => {
