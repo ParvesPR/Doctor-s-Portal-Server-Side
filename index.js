@@ -3,7 +3,7 @@ const cors = require('cors');
 const port = process.env.PORT || 5000;
 require('dotenv').config();
 const app = express();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
 
 // MIDDLEWARE
@@ -137,6 +137,14 @@ async function run() {
                 return res.status(403).send({ message: 'forbidden access' });
             }
         });
+
+        //APPOINTMENT DETAILS BY ID
+        app.get('/appointments/:id', verifyJwt, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await bookingCollection.findOne(query);
+            res.send(result);
+        })
 
         // ADD A DOCTOR
         app.post('/doctor', verifyJwt, verifyAdmin, async (req, res) => {
